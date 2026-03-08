@@ -47,6 +47,7 @@ export default function RootLayout({
             __html: `(function(){var t=localStorage.getItem('theme');var v=t==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',v);document.documentElement.classList.toggle('dark',t==='dark');})();`,
           }}
         />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400..600,0,0"
           rel="stylesheet"

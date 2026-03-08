@@ -292,14 +292,6 @@ function LoginContent() {
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      className="flex-1"
-                      onClick={handleForgotPassword}
-                      disabled={forgotLoading || !email.trim()}
-                    >
-                      {forgotLoading ? "发送中…" : "发送重置邮件"}
-                    </Button>
-                    <Button
-                      type="button"
                       variant="outline"
                       onClick={() => {
                         setForgotPassword(false);
@@ -307,7 +299,15 @@ function LoginContent() {
                         setSuccessMessage(null);
                       }}
                     >
-                      返回登录
+                      取消
+                    </Button>
+                    <Button
+                      type="button"
+                      className="flex-1"
+                      onClick={handleForgotPassword}
+                      disabled={forgotLoading || !email.trim()}
+                    >
+                      {forgotLoading ? "发送中…" : "发送重置邮件"}
                     </Button>
                   </div>
                 </div>
