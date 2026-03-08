@@ -21,7 +21,7 @@ export interface ChatListRowProps {
 }
 
 export function ChatListRow({ item, nickname }: ChatListRowProps) {
-  const displayName = nickname ?? item.initialNickname || "用户";
+  const displayName = (nickname ?? item.initialNickname) || "用户";
   return (
     <li>
       <Link
