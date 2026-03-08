@@ -87,7 +87,7 @@ export function MessageBubble({
       <Avatar
         color={isSelf ? "#DCE8FF" : "#C8D4FF"}
         avatarUrl={avatarUrl}
-        size="sm"
+        size="md"
         rounded="md"
         className="shrink-0"
       />
