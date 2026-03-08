@@ -1,30 +1,66 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { ChatDetailClient } from "@/components/chat/ChatDetailClient";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ name?: string }>;
 };
 
-export default async function ChatDetailPage({ params }: Props) {
-  const { id } = await params;
+export default async function ChatDetailPage(props: Props) {
+  const { id: conversationId } = await props.params;
+  const { name: nameFromList } = await props.searchParams;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id, is_cleared_for_all")
+    .eq("id", conversationId)
+    .single();
+  if (!conv) redirect("/chat");
+
+  const { data: otherUserIdRaw } = await supabase.rpc("get_other_conversation_member", {
+    conv_id: conversationId,
+  });
+  const otherUserId = typeof otherUserIdRaw === "string" ? otherUserIdRaw : null;
+  if (!otherUserId) redirect("/chat");
+
+  const [resOther, resMy, resLastRead] = await Promise.all([
+    supabase.from("profiles").select("display_name, avatar_url").eq("id", otherUserId).single(),
+    supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle(),
+    supabase.rpc("get_other_member_last_read_at", { conv_id: conversationId }),
+  ]);
+  const otherProfile = resOther.data;
+  const myProfile = resMy.data;
+  const otherLastReadAtRaw = resLastRead.data;
+  const otherUserDisplayName = otherProfile?.display_name?.trim() || "用户";
+  const otherUserAvatarUrl = otherProfile?.avatar_url?.trim() || null;
+  const currentUserAvatarUrl = myProfile?.avatar_url?.trim() ?? null;
+  const initialOtherLastReadAt =
+    otherLastReadAtRaw != null ? String(otherLastReadAtRaw) : null;
+
+  supabase
+    .from("conversation_members")
+    .update({ last_read_at: new Date().toISOString() })
+    .eq("conversation_id", conversationId)
+    .eq("user_id", user.id)
+    .then(() => {});
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-zinc-200 bg-white/95 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/95">
-        <Link
-          href="/chat"
-          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-          aria-label="返回"
-        >
-          ← 返回
-        </Link>
-        <h1 className="flex-1 text-center font-medium">会话：{id}</h1>
-        <span className="w-10" />
-      </header>
-      <main className="flex-1 px-4 py-6">
-        <p className="text-zinc-600 dark:text-zinc-400">
-          聊天详情页预留，接入 Supabase Realtime 后可在此展示消息列表与发送消息。
-        </p>
-      </main>
-    </div>
+    <ChatDetailClient
+      conversationId={conversationId}
+      currentUserId={user.id}
+      otherUserId={otherUserId}
+      otherUserDisplayName={otherUserDisplayName}
+      otherUserAvatarUrl={otherUserAvatarUrl}
+      currentUserAvatarUrl={currentUserAvatarUrl}
+      nameFromList={nameFromList ?? null}
+      initialIsClearedForAll={conv.is_cleared_for_all ?? false}
+      initialOtherLastReadAt={initialOtherLastReadAt}
+    />
   );
 }

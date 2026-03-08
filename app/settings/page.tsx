@@ -1,31 +1,33 @@
+"use client";
+
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function SettingsPage() {
   return (
-    <div className="mx-auto max-w-lg px-4 py-6">
-      <header className="mb-6 flex items-center gap-2">
-        <Link
-          href="/me"
-          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-          aria-label="返回"
-        >
-          ← 返回
-        </Link>
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-          设置
-        </h1>
-      </header>
-      <p className="mb-6 text-zinc-600 dark:text-zinc-400">
-        设置页预留，可在此接入通知、主题、账号与隐私等配置。
-      </p>
-      <nav className="space-y-2">
-        <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
-          通知设置（待实现）
-        </div>
-        <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
-          主题（待实现）
-        </div>
-      </nav>
+    <div className="mx-auto min-h-screen max-w-lg bg-background">
+      <PageHeader title="个人信息" backHref="/me" backLabel="返回" />
+      <main className="p-4 space-y-4">
+        <Card className="shadow-sm">
+          <CardContent className="p-0">
+            <Link
+              href="/settings/avatar"
+              className="flex items-center justify-between border-b border-border px-5 py-4 text-base font-medium text-foreground transition-colors hover:bg-accent/50 active:bg-accent first:rounded-t-[var(--radius-lg)]"
+            >
+              选择头像
+              <span className="text-muted-foreground">›</span>
+            </Link>
+            <Link
+              href="/settings/nickname"
+              className="flex items-center justify-between px-5 py-4 text-base font-medium text-foreground transition-colors hover:bg-accent/50 active:bg-accent rounded-b-[var(--radius-lg)]"
+            >
+              修改昵称
+              <span className="text-muted-foreground">›</span>
+            </Link>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 }

@@ -6,7 +6,7 @@ export default function TabsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-screen flex-col bg-background">
       <main className="flex-1 pb-20">{children}</main>
       <BottomNav />
     </div>

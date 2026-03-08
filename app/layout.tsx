@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ClientAuthHashRedirect } from "@/components/auth/ClientAuthHashRedirect";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { UnreadCountProvider } from "@/components/chat/UnreadCountProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#343434",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -37,11 +40,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('theme');var v=t==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',v);document.documentElement.classList.toggle('dark',t==='dark');})();`,
+          }}
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400..600,0,0"
+          rel="stylesheet"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        {children}
+        <ThemeProvider>
+          <ClientAuthHashRedirect />
+          <UnreadCountProvider>{children}</UnreadCountProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

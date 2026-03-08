@@ -4,8 +4,8 @@
   "description": "聊天 PWA 应用，支持离线与安装到主屏",
   "start_url": "/chat",
   "display": "standalone",
-  "background_color": "#fafafa",
-  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "theme_color": "#343434",
   "orientation": "portrait-primary",
   "icons": []
 }
