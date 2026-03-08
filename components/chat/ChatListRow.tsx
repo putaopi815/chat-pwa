@@ -14,7 +14,14 @@ export interface ChatListRowItem {
   unreadCount: number;
 }
 
-export function ChatListRow({ item }: { item: ChatListRowItem }) {
+export interface ChatListRowProps {
+  item: ChatListRowItem;
+  /** 可选：实时昵称，优先于 item.initialNickname 显示（由 ChatListWithNicknames 传入） */
+  nickname?: string;
+}
+
+export function ChatListRow({ item, nickname }: ChatListRowProps) {
+  const displayName = nickname ?? item.initialNickname || "用户";
   return (
     <li>
       <Link
@@ -35,7 +42,7 @@ export function ChatListRow({ item }: { item: ChatListRowItem }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <p className="truncate text-base font-semibold text-foreground">
-              {item.initialNickname || "用户"}
+              {displayName}
             </p>
             <span className="shrink-0 text-xs font-medium text-muted-foreground">
               {item.time}
