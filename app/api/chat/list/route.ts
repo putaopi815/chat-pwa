@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { formatMessageTime } from "@/lib/format-time";
 
 export const dynamic = "force-dynamic";
 
@@ -106,10 +105,11 @@ export async function GET() {
       .maybeSingle();
 
     let summary: string;
-    let time: string;
+    /** 最后一条消息的 ISO 时间戳，由客户端按本地时区格式化，避免服务端 UTC 导致列表时间错误 */
+    const time = message?.created_at ?? "";
+
     if (!message) {
       summary = conv?.is_cleared_for_all ? "聊天记录已清空" : "";
-      time = "—";
     } else {
       if (message.status === "recalled") {
         summary = message.sender_id === myId ? "你撤回了一条消息" : "对方撤回了一条消息";
@@ -118,7 +118,6 @@ export async function GET() {
       } else {
         summary = message.content ?? "";
       }
-      time = formatMessageTime(message.created_at);
     }
 
     rows.push({

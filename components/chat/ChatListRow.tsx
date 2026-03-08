@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
+import { formatMessageTime } from "@/lib/format-time";
 
 export interface ChatListRowItem {
   id: string;
@@ -45,7 +46,7 @@ export function ChatListRow({ item, nickname }: ChatListRowProps) {
               {displayName}
             </p>
             <span className="shrink-0 text-xs font-medium text-muted-foreground">
-              {item.time}
+              {item.time ? formatMessageTime(item.time) : "—"}
             </span>
           </div>
           <p className="mt-1 truncate text-sm text-muted-foreground">
