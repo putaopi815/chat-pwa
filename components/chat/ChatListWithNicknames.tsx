@@ -69,13 +69,15 @@ export function ChatListWithNicknames({ rows, otherUserIds }: ChatListWithNickna
 
   return (
     <ul className="divide-y divide-border">
-      {rows.map((item) => (
-        <ChatListRow
-          key={item.id}
-          item={item}
-          nickname={nicknameByUserId[item.otherUserId] ?? item.initialNickname ?? FALLBACK}
-        />
-      ))}
+      {rows.map((item) => {
+        const displayName = nicknameByUserId[item.otherUserId] ?? item.initialNickname ?? FALLBACK;
+        return (
+          <ChatListRow
+            key={item.id}
+            item={{ ...item, initialNickname: displayName }}
+          />
+        );
+      })}
     </ul>
   );
 }
