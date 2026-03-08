@@ -16,7 +16,7 @@ export function BottomNav() {
   const { totalUnread } = useUnreadCount();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-[66px] border-t border-border bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-card/95 safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 h-[76px] border-t border-border bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-card/95 safe-area-pb">
       <div className="mx-auto flex h-full max-w-lg items-center justify-around px-7">
         {tabs.map(({ href, label, Icon, showUnread }, index) => {
           const isActive = pathname === href || pathname.startsWith(`${href}/`);
