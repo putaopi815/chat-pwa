@@ -1,12 +1,34 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+
+/** 登录路由布局兜底（与 LoginContent 一致），避免 Suspense/首屏阶段无 Tailwind 时错位 */
+const LOGIN_SHELL_STYLE: CSSProperties = {
+  minHeight: "100dvh",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "clamp(1.25rem, 4vw, 2.5rem)",
+  paddingBottom: "max(2.5rem, env(safe-area-inset-bottom, 0px))",
+  backgroundColor: "var(--background, #ffffff)",
+  color: "var(--foreground, #0a0a0a)",
+};
+
+const LOGIN_INNER_STYLE: CSSProperties = {
+  width: "100%",
+  maxWidth: "24rem",
+  boxSizing: "border-box",
+};
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -23,7 +45,7 @@ function LoginContent() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
@@ -69,7 +91,7 @@ function LoginContent() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
@@ -124,7 +146,7 @@ function LoginContent() {
             return;
           }
           setError(apiError || "注册失败，请重试。");
-        } catch (_) {
+        } catch {
           const fallback =
             signupRes.status === 422
               ? "注册未通过校验，请确认密码至少 6 位、邮箱格式正确。"
@@ -147,7 +169,7 @@ function LoginContent() {
             redirect: "follow",
             credentials: "same-origin",
           });
-        } catch (fetchErr) {
+        } catch {
           setError("网络错误，请检查网络后重试。");
           setLoading(false);
           return;
@@ -200,24 +222,40 @@ function LoginContent() {
     }
   };
 
+  const fieldClass =
+    "h-12 w-full max-w-full bg-background text-[15px] shadow-sm ring-offset-background dark:bg-background/80";
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-8">
-      <div className="w-full max-w-sm space-y-5">
-        <div className="flex flex-col items-center gap-3.5">
-          <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-black">
-            <img
+    <div
+      className="flex min-h-dvh min-h-[100svh] flex-col items-center justify-center bg-background px-5 py-10 sm:px-6 safe-area-pb"
+      style={LOGIN_SHELL_STYLE}
+    >
+      <div className="w-full max-w-sm space-y-6" style={LOGIN_INNER_STYLE}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-black shadow-md ring-1 ring-black/10 dark:ring-white/10">
+            <Image
               src="/icons/icon-512.png"
               alt=""
-              className="h-full w-full rounded-[20px] object-cover"
               width={72}
               height={72}
+              className="h-full w-full rounded-[20px] object-cover"
+              priority
             />
           </div>
-          <h1 className="text-2xl font-semibold text-foreground">轻聊</h1>
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">聊聊吧</h1>
+            <p className="mt-1 text-sm text-muted-foreground">使用邮箱登录或注册</p>
+          </div>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <form id="auth-form" onSubmit={handleSubmit} className="space-y-3" noValidate>
+        <Card className="border-border/80 shadow-md">
+          <CardContent className="space-y-1 pt-6 sm:pt-7">
+            <form
+              id="auth-form"
+              onSubmit={handleSubmit}
+              className="space-y-4"
+              noValidate
+              aria-busy={loading}
+            >
               <Input
                 type="email"
                 value={email}
@@ -225,7 +263,7 @@ function LoginContent() {
                 placeholder="请输入邮箱"
                 required
                 autoComplete="email"
-                className="h-12 text-[15px]"
+                className={fieldClass}
               />
               <div className="relative">
                 <Input
@@ -236,12 +274,12 @@ function LoginContent() {
                   required
                   minLength={6}
                   autoComplete={isRegister ? "new-password" : "current-password"}
-                  className="h-12 pr-11 text-[15px]"
+                  className={`${fieldClass} pr-11`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="absolute right-2 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   aria-label={showPassword ? "隐藏密码" : "显示密码"}
                 >
                   {showPassword ? (
@@ -268,15 +306,20 @@ function LoginContent() {
                 </div>
               )}
               {error && (
-                <p className="text-sm text-destructive">{error}</p>
+                <p
+                  role="alert"
+                  className="rounded-[var(--radius)] border border-destructive/35 bg-destructive/10 px-3 py-2.5 text-sm leading-relaxed text-destructive"
+                >
+                  {error}
+                </p>
               )}
               {successMessage && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">{successMessage}</p>
+                <div className="space-y-2 rounded-[var(--radius)] border border-border bg-muted/50 px-3 py-2.5">
+                  <p className="text-sm leading-relaxed text-muted-foreground">{successMessage}</p>
                   <Button
                     type="button"
                     variant="link"
-                    className="h-auto p-0 text-sm"
+                    className="h-auto p-0 text-sm text-primary"
                     onClick={handleResendConfirmation}
                     disabled={resendLoading || !email.trim()}
                   >
@@ -315,7 +358,7 @@ function LoginContent() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="h-12 w-full text-base"
+                  className="h-12 w-full text-base font-medium shadow-sm"
                 >
                   {loading ? "请稍候…" : isRegister ? "注册" : "登录"}
                 </Button>
@@ -327,7 +370,7 @@ function LoginContent() {
           <Button
             type="button"
             variant="ghost"
-            className="w-full text-sm text-muted-foreground"
+            className="h-11 w-full text-sm text-muted-foreground hover:text-foreground"
             onClick={() => {
               setIsRegister((v) => !v);
               setError(null);
@@ -337,7 +380,7 @@ function LoginContent() {
             {isRegister ? "已有账号？去登录" : "没有账号？去注册"}
           </Button>
         )}
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="px-1 text-center text-[11px] leading-snug text-muted-foreground">
           登录即表示你同意《用户协议》与《隐私政策》
         </p>
       </div>
@@ -345,9 +388,27 @@ function LoginContent() {
   );
 }
 
+function LoginSuspenseFallback() {
+  return (
+    <div
+      className="flex min-h-dvh min-h-[100svh] flex-col items-center justify-center bg-background px-5 safe-area-pb"
+      style={LOGIN_SHELL_STYLE}
+    >
+      <div
+        className="flex w-full max-w-sm flex-col items-center gap-4"
+        style={LOGIN_INNER_STYLE}
+      >
+        <div className="h-[72px] w-[72px] animate-pulse rounded-[20px] bg-muted" />
+        <div className="h-7 w-32 animate-pulse rounded-md bg-muted" />
+        <div className="h-40 w-full animate-pulse rounded-[var(--radius-lg)] bg-muted/80" />
+      </div>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background"><p className="text-[15px] text-muted-foreground">加载中…</p></div>}>
+    <Suspense fallback={<LoginSuspenseFallback />}>
       <LoginContent />
     </Suspense>
   );

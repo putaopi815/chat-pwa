@@ -5,7 +5,7 @@ const PROTECTED_PREFIXES = ["/chat", "/contacts", "/me", "/settings"];
 const LOGIN_PATH = "/login";
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const response = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -49,5 +49,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

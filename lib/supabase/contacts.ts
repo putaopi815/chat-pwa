@@ -3,19 +3,15 @@ import type { Contact } from "@/types";
 
 const DEFAULT_AVATAR_COLORS = ["#C8D4FF", "#FFD9C5", "#CFEED8", "#E8D5F2", "#D4E4FF", "#FFE5C8"];
 
-/** 获取当前用户通讯录（含 profile 信息），需已登录 */
-export async function getMyContacts(
-  supabase: SupabaseClient
+/** 已知 userId 时拉通讯录（避免重复 getUser），用于客户端 Tab 等 */
+export async function getMyContactsForUser(
+  supabase: SupabaseClient,
+  userId: string
 ): Promise<Contact[]> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
-
   const { data: rows } = await supabase
     .from("user_contacts")
     .select("contact_user_id, created_at")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (!rows?.length) return [];
@@ -41,6 +37,15 @@ export async function getMyContacts(
 
   list.sort((a, b) => (a.nickname || "").localeCompare(b.nickname || "", "zh-CN"));
   return list;
+}
+
+/** 获取当前用户通讯录（含 profile 信息），需已登录 */
+export async function getMyContacts(supabase: SupabaseClient): Promise<Contact[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return getMyContactsForUser(supabase, user.id);
 }
 
 /** 按 account_id 搜索用户（不含自己），用于添加好友 */

@@ -8,7 +8,6 @@ import {
   useCallback,
   useRef,
 } from "react";
-import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -29,7 +28,6 @@ export function useUnreadCount(): UnreadCountContextValue {
 
 export function UnreadCountProvider({ children }: { children: React.ReactNode }) {
   const [totalUnread, setTotalUnread] = useState(0);
-  const pathname = usePathname();
   const channelsRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]>[]>([]);
   const authPromiseRef = useRef<Promise<{ user: User | null }> | null>(null);
 
@@ -134,13 +132,6 @@ export function UnreadCountProvider({ children }: { children: React.ReactNode })
       channelsRef.current = [];
     };
   }, [fetchTotalUnread]);
-
-  // 切换到聊天相关页面时重新拉取未读数（进入会话后 last_read_at 已更新，立即反映角标）
-  useEffect(() => {
-    if (pathname === "/chat" || pathname.startsWith("/chat/")) {
-      fetchTotalUnread();
-    }
-  }, [pathname, fetchTotalUnread]);
 
   return (
     <UnreadCountContext.Provider

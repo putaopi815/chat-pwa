@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { MessageCircle, Users, UserCircle } from "lucide-react";
 import { useUnreadCount } from "@/components/chat/UnreadCountProvider";
 
@@ -13,10 +13,11 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { totalUnread } = useUnreadCount();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-[76px] border-t border-border bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-card/95 safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 h-[76px] border-t border-border bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-card/95 safe-area-pb dark:shadow-[0_-1px_12px_rgba(0,0,0,0.45)]">
       <div className="mx-auto flex h-full max-w-lg items-center justify-around px-7">
         {tabs.map(({ href, label, Icon, showUnread }, index) => {
           const isActive = pathname === href || pathname.startsWith(`${href}/`);
@@ -29,6 +30,7 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
+              onMouseEnter={() => router.prefetch(href)}
               className={`relative flex h-full flex-1 items-center justify-center transition-colors ${
                 isFirst ? "mr-2.5" : ""
               } ${isLast ? "ml-2.5" : ""} ${

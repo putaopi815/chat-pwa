@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* 显式扫描源码，避免 v4 在部分构建/路由下漏扫导致整页「无样式」 */
+@source "./**/*.{js,ts,jsx,tsx,mdx}";
+@source "../components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../lib/**/*.{js,ts,jsx,tsx,mdx}";
+
 /* 主题由「我的」页开关控制，不跟随系统；data-theme 由 JS 设置 */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -114,6 +119,16 @@ html {
 }
 
 @layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
@@ -121,9 +136,18 @@ html {
 }
 
 body {
+  margin: 0;
+  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--primary) 28%, transparent);
+  color: var(--foreground);
 }
 
 /* 底部 Tab 图标：Material Symbols Rounded，16px */

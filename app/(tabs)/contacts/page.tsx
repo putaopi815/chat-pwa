@@ -1,16 +1,8 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getMyContacts } from "@/lib/supabase/contacts";
-import { ContactsContent } from "./ContactsContent";
+import { ContactsFromClient } from "./ContactsFromClient";
 
-export default async function ContactsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+export const dynamic = "force-dynamic";
 
-  const contacts = await getMyContacts(supabase);
-
-  return <ContactsContent initialContacts={contacts} />;
+/** 鉴权由 proxy 负责；数据在客户端拉取并模块缓存，减轻 Tab 切换时的服务端阻塞 */
+export default function ContactsPage() {
+  return <ContactsFromClient />;
 }

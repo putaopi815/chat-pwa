@@ -8,7 +8,13 @@ import { ContactsRealtimeRefresher } from "./ContactsRealtimeRefresher";
 import { ContactRow } from "./ContactRow";
 import type { Contact } from "@/types";
 
-export function ContactsContent({ initialContacts }: { initialContacts: Contact[] }) {
+export function ContactsContent({
+  initialContacts,
+  onProfilesUpdated,
+}: {
+  initialContacts: Contact[];
+  onProfilesUpdated?: () => void;
+}) {
   const contactIds = initialContacts.map((c) => c.id);
 
   return (
@@ -25,7 +31,7 @@ export function ContactsContent({ initialContacts }: { initialContacts: Contact[
           </Link>
         }
       />
-      <ContactsRealtimeRefresher contactUserIds={contactIds}>
+      <ContactsRealtimeRefresher contactUserIds={contactIds} onProfilesUpdated={onProfilesUpdated}>
         <div className="p-4">
           <Card className="shadow-sm overflow-hidden">
             <CardContent className="p-0">

@@ -49,7 +49,7 @@ export default function RootLayout({
         />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400..600,0,0"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400..600,0,0&display=swap"
           rel="stylesheet"
         />
       </head>

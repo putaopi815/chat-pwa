@@ -1,16 +1,9 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { ChatListFromApi } from "@/components/chat/ChatListFromApi";
 
 export const dynamic = "force-dynamic";
 
-export default async function ChatPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
+/** 鉴权由 proxy + /api/chat/list 负责，避免此处再跑一次 getUser */
+export default function ChatPage() {
   return (
     <div className="mx-auto max-w-lg bg-background">
       <header className="h-14 shrink-0 border-b border-border bg-card px-3 flex items-center justify-center shadow-sm">

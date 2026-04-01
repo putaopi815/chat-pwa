@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 export interface ContactsRealtimeRefresherProps {
   contactUserIds: string[];
   children: React.ReactNode;
+  /** 联系人 profile 变更时刷新列表；不传则用 router.refresh()（服务端页兼容） */
+  onProfilesUpdated?: () => void;
 }
 
 /**
@@ -15,6 +17,7 @@ export interface ContactsRealtimeRefresherProps {
 export function ContactsRealtimeRefresher({
   contactUserIds,
   children,
+  onProfilesUpdated,
 }: ContactsRealtimeRefresherProps) {
   const router = useRouter();
   useEffect(() => {
@@ -22,7 +25,7 @@ export function ContactsRealtimeRefresher({
     const supabase = createClient();
     const channels: ReturnType<typeof supabase.channel>[] = [];
 
-    const onUpdate = () => router.refresh();
+    const onUpdate = () => (onProfilesUpdated ? onProfilesUpdated() : router.refresh());
 
     for (const uid of contactUserIds) {
       if (!uid) continue;
@@ -45,7 +48,7 @@ export function ContactsRealtimeRefresher({
     return () => {
       channels.forEach((ch) => supabase.removeChannel(ch));
     };
-  }, [contactUserIds, router]);
+  }, [contactUserIds, onProfilesUpdated, router]);
 
   return <>{children}</>;
 }

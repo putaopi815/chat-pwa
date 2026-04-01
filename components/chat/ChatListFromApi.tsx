@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChatListRow } from "./ChatListRow";
@@ -8,7 +8,7 @@ import { ChatListRealtimeRefresher } from "./ChatListRealtimeRefresher";
 import { useUnreadCount } from "@/components/chat/UnreadCountProvider";
 import type { ChatListRow as ChatListRowType } from "@/app/api/chat/list/route";
 
-const CHAT_LIST_POLL_INTERVAL_MS = 3000;
+const CHAT_LIST_POLL_INTERVAL_MS = 15000;
 
 /** 模块级缓存：切回聊天 tab 时先展示上次列表，再后台刷新，避免长时间「加载中」 */
 let cachedList: {
@@ -24,32 +24,39 @@ export function ChatListFromApi() {
   const [conversationIds, setConversationIds] = useState<string[]>(() => cachedList?.conversationIds ?? []);
   const [otherUserIds, setOtherUserIds] = useState<string[]>(() => cachedList?.otherUserIds ?? []);
   const [loading, setLoading] = useState(!cachedList);
+  const fetchInFlightRef = useRef(false);
 
   const fetchList = useMemo(
     () => async () => {
-      const res = await fetch("/api/chat/list", {
-        credentials: "include",
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" },
-      });
-      if (res.status === 401) {
-        router.replace("/login");
-        return;
-      }
-      if (!res.ok) {
-        setRows([]);
+      if (fetchInFlightRef.current) return;
+      fetchInFlightRef.current = true;
+      try {
+        const res = await fetch("/api/chat/list", {
+          credentials: "include",
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
+        if (res.status === 401) {
+          router.replace("/login");
+          return;
+        }
+        if (!res.ok) {
+          setRows([]);
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        const nextRows = data.rows ?? [];
+        const nextConvIds = data.conversationIds ?? [];
+        const nextOtherIds = data.otherUserIds ?? [];
+        cachedList = { rows: nextRows, conversationIds: nextConvIds, otherUserIds: nextOtherIds };
+        setRows(nextRows);
+        setConversationIds(nextConvIds);
+        setOtherUserIds(nextOtherIds);
         setLoading(false);
-        return;
+      } finally {
+        fetchInFlightRef.current = false;
       }
-      const data = await res.json();
-      const nextRows = data.rows ?? [];
-      const nextConvIds = data.conversationIds ?? [];
-      const nextOtherIds = data.otherUserIds ?? [];
-      cachedList = { rows: nextRows, conversationIds: nextConvIds, otherUserIds: nextOtherIds };
-      setRows(nextRows);
-      setConversationIds(nextConvIds);
-      setOtherUserIds(nextOtherIds);
-      setLoading(false);
     },
     [router]
   );
@@ -59,7 +66,9 @@ export function ChatListFromApi() {
   }, [fetchList]);
 
   useEffect(() => {
-    const onVisible = () => fetchList();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchList();
+    };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [fetchList]);
@@ -77,11 +86,11 @@ export function ChatListFromApi() {
   // 停留在聊天列表时轮询：列表与底部「聊天」未读角标实时更新（Realtime 未生效时的兜底）
   useEffect(() => {
     const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       fetchList();
-      refetchUnread();
     }, CHAT_LIST_POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [fetchList, refetchUnread]);
+  }, [fetchList]);
 
   if (loading) {
     return (

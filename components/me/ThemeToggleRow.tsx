@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { cn } from "@/lib/utils";
 
 export function ThemeToggleRow() {
   const { isDark, toggleTheme } = useTheme();
@@ -14,14 +15,19 @@ export function ThemeToggleRow() {
         aria-checked={isDark}
         aria-label={isDark ? "切换到亮色" : "切换到暗色"}
         onClick={toggleTheme}
-        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-input transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-          isDark ? "bg-primary" : "bg-input"
-        }`}
+        className={cn(
+          "relative h-7 w-12 shrink-0 cursor-pointer rounded-full border border-border transition-colors motion-reduce:transition-none",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          isDark ? "bg-primary" : "bg-muted"
+        )}
       >
+        {/* 绝对定位滑块，避免 inline-flex 子项在部分环境下不可见 */}
         <span
-          className={`pointer-events-none block size-5 rounded-full shadow-sm ring-0 transition-transform ${
-            isDark ? "translate-x-5 bg-primary-foreground" : "translate-x-0.5 bg-primary"
-          }`}
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute top-1/2 left-[3px] block h-[22px] w-[22px] -translate-y-1/2 rounded-full border border-border/80 bg-card shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none",
+            isDark ? "translate-x-[22px]" : "translate-x-0"
+          )}
         />
       </button>
     </div>

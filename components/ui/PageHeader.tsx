@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 export interface PageHeaderProps {
   title: string;
   /** 右侧插槽，如「+ 添加」 */
-  rightSlot?: React.ReactNode;
+  rightSlot?: ReactNode;
   /** 返回链接，有则显示「‹ 返回」 */
   backHref?: string;
   backLabel?: string;

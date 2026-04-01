@@ -3,18 +3,55 @@
 import {
   createContext,
   useContext,
-  useState,
-  useLayoutEffect,
   useCallback,
+  useLayoutEffect,
+  useSyncExternalStore,
 } from "react";
+import type { ReactNode } from "react";
 
 const STORAGE_KEY = "theme";
 
 type Theme = "light" | "dark";
 
-function readTheme(): Theme {
+const listeners = new Set<() => void>();
+
+function emit() {
+  listeners.forEach((l) => l());
+}
+
+let storageListenerAttached = false;
+
+function subscribe(onStoreChange: () => void) {
+  listeners.add(onStoreChange);
+  if (typeof window !== "undefined" && !storageListenerAttached) {
+    storageListenerAttached = true;
+    window.addEventListener("storage", (e) => {
+      if (e.key === STORAGE_KEY || e.key === null) emit();
+    });
+  }
+  return () => {
+    listeners.delete(onStoreChange);
+  };
+}
+
+function getSnapshot(): Theme {
   if (typeof window === "undefined") return "light";
   return localStorage.getItem(STORAGE_KEY) === "dark" ? "dark" : "light";
+}
+
+function getServerSnapshot(): Theme {
+  return "light";
+}
+
+function applyDomTheme(t: Theme) {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-theme", t);
+  document.documentElement.classList.toggle("dark", t === "dark");
+  try {
+    localStorage.setItem(STORAGE_KEY, t);
+  } catch {
+    // 隐私模式等可能不可用
+  }
 }
 
 const ThemeContext = createContext<{
@@ -24,42 +61,22 @@ const ThemeContext = createContext<{
   toggleTheme: () => void;
 } | null>(null);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useLayoutEffect(() => {
-    setThemeState(readTheme());
-    setMounted(true);
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!mounted) return;
-    const root = document.documentElement;
-    root.setAttribute("data-theme", theme);
-    root.classList.toggle("dark", theme === "dark");
-    localStorage.setItem(STORAGE_KEY, theme);
-  }, [mounted, theme]);
+    applyDomTheme(theme);
+  }, [theme]);
 
   const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", next);
-      document.documentElement.classList.toggle("dark", next === "dark");
-      localStorage.setItem(STORAGE_KEY, next);
-    }
+    applyDomTheme(next);
+    emit();
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
-      const next = prev === "dark" ? "light" : "dark";
-      if (typeof document !== "undefined") {
-        document.documentElement.setAttribute("data-theme", next);
-        document.documentElement.classList.toggle("dark", next === "dark");
-        localStorage.setItem(STORAGE_KEY, next);
-      }
-      return next;
-    });
+    const next = getSnapshot() === "dark" ? "light" : "dark";
+    applyDomTheme(next);
+    emit();
   }, []);
 
   return (

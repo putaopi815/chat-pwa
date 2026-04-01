@@ -43,7 +43,7 @@ export function Avatar({
       <img
         src={avatarUrl}
         alt=""
-        className={`shrink-0 ${roundedClass} object-cover ${sizeClass} ${className}`}
+        className={`aspect-square max-w-full shrink-0 ${roundedClass} object-cover ${sizeClass} ${className}`}
         aria-hidden
       />
     );
